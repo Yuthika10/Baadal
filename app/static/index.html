@@ -298,10 +298,32 @@ function startSteps() {
 }
 function stopSteps() { clearInterval(stepTimer); show("working", false); }
 
+// Fetch Open-Meteo from the phone itself: it uses the user's own IP, so it isn't
+// caught by the rate limit on the server's shared IP. The server falls back if this fails.
+async function browserWeather() {
+  const lat = coords ? coords.lat : cfg.default_lat;
+  const lon = coords ? coords.lon : cfg.default_lon;
+  if (lat == null || !cfg.weather_hourly) return null;
+  const q = new URLSearchParams({
+    latitude: lat.toFixed(3), longitude: lon.toFixed(3),
+    hourly: cfg.weather_hourly.join(","), current: "temperature_2m",
+    past_days: "1", forecast_days: "2", timezone: "auto",
+  });
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 12000);
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?${q}`, { signal: ctrl.signal });
+    clearTimeout(t);
+    return r.ok ? await r.text() : null;
+  } catch { return null; }
+}
+
 async function predict(form) {
   if (coords) { form.append("lat", coords.lat); form.append("lon", coords.lon); }
   startSteps();
   try {
+    const wx = await browserWeather();
+    if (wx) form.append("weather_json", wx);
     const r = await fetch("/api/read-sky", { method: "POST", body: form });
     const data = await r.json();
     if (!r.ok) throw new Error(data.detail || "Something went wrong");

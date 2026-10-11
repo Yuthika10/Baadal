@@ -21,7 +21,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import config, gemma, weather
-from .features import CLOUD_GENERA, apply_sky_observation
+from .features import CLOUD_GENERA, HOURLY_VARS, apply_sky_observation
 from .predictor import predictor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
@@ -70,6 +70,7 @@ def client_config() -> dict:
         "default_lon": config.DEFAULT_LON,
         "default_place": config.DEFAULT_PLACE,
         "genera": CLOUD_GENERA,
+        "weather_hourly": HOURLY_VARS,
         "horizon_hours": config.HORIZON_HOURS,
         "gemma": gemma.model_label(),
     }
@@ -105,16 +106,27 @@ def read_sky(
     manual_genus: str | None = Form(default=None),
     manual_oktas: int | None = Form(default=None),
     manual_vertical: bool = Form(default=False),
+    weather_json: str | None = Form(default=None),
 ) -> dict:
     t0 = time.time()
     lat = config.DEFAULT_LAT if lat is None else lat
     lon = config.DEFAULT_LON if lon is None else lon
 
-    # 1. Live atmosphere
+    # 1. Live atmosphere (the browser usually sends Open-Meteo data it fetched itself)
+    payload = None
+    if weather_json and len(weather_json) < 600_000:
+        try:
+            payload = json.loads(weather_json)
+        except json.JSONDecodeError:
+            payload = None
     try:
-        live = weather.live_features(lat, lon)
+        live = weather.live_features(lat, lon, payload)
     except Exception as exc:
-        raise HTTPException(502, f"Could not fetch live weather: {exc}")
+        raise HTTPException(
+            502,
+            "Couldn't get live weather right now (the free weather service is busy). "
+            f"Please try again in a minute. [{exc}]",
+        )
     row = live["row"]
 
     # 2. What the sky looks like: Gemma, or the user's own call
@@ -197,6 +209,7 @@ def read_sky(
         "model_forecast_mm_3h": live["model_forecast_mm_3h"],
         "local_time": live["local_time"],
         "timezone": live["timezone"],
+        "weather_source": live.get("source"),
         "horizon_hours": config.HORIZON_HOURS,
         "backends": {"predictor": predictor.status(), "gemma": gemma.model_label()},
         "elapsed_s": round(time.time() - t0, 2),
