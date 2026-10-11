@@ -1,4 +1,4 @@
-# Cloud Oracle ☁️
+# Baadal ☁️
 
 **Look up, take one photo, learn to read the sky.**
 Gemma 4 (open-weight vision) reads the clouds, TabPFN (tabular foundation model) turns
