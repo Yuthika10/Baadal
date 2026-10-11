@@ -1,4 +1,4 @@
-"""Cloud Oracle API + static frontend.
+"""Baadal API + static frontend.
 
 Run locally:   uvicorn app.main:app --reload
 On Render:     uvicorn app.main:app --host 0.0.0.0 --port $PORT
@@ -43,7 +43,7 @@ async def lifespan(_app: FastAPI):
     yield
 
 
-app = FastAPI(title="Cloud Oracle", version="1.0", lifespan=lifespan)
+app = FastAPI(title="Baadal", version="1.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
