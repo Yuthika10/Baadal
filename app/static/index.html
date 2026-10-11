@@ -73,6 +73,10 @@
   }
   .capture:active { transform: scale(0.99); }
   .capture input { display: none; }
+  .capture.secondary {
+    margin-top: 10px; padding: 14px; font-size: 16px;
+    background: transparent; color: var(--accent); border: 1.5px solid var(--accent);
+  }
   .linkbtn { background: none; border: 0; color: var(--accent); font: 500 15px Inter, sans-serif; padding: 10px 0 0; cursor: pointer; }
   .loc { margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
   .hidden { display: none !important; }
@@ -143,6 +147,11 @@
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4z"/><circle cx="12" cy="13" r="4"/></svg>
       Read the sky
       <input id="photo" type="file" accept="image/*" capture="environment">
+    </label>
+    <label class="capture secondary" role="button">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+      Upload from gallery
+      <input id="gallery" type="file" accept="image/*">
     </label>
     <button class="linkbtn" id="manualOpen" type="button">No photo? Tell it what you see</button>
     <div class="loc" id="loc">Finding your location…</div>
@@ -334,14 +343,16 @@ async function predict(form) {
   }
 }
 
-$("photo").addEventListener("change", async (ev) => {
+async function onPhoto(ev) {
   const file = ev.target.files[0];
   if (!file) return;
   const form = new FormData();
   form.append("image", await shrink(file), "sky.jpg");
   ev.target.value = "";
   predict(form);
-});
+}
+$("photo").addEventListener("change", onPhoto);    // opens the camera on phones
+$("gallery").addEventListener("change", onPhoto);  // opens the photo library
 
 $("manualOpen").onclick = () => { show("manual"); $("manual").scrollIntoView({ behavior: "smooth" }); };
 $("correct").onclick = $("manualOpen").onclick;
