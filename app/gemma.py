@@ -77,16 +77,28 @@ def prepare_image(raw: bytes, max_side: int = 1024) -> bytes:
     return buf.getvalue()
 
 
-def extract_json(text: str) -> dict:
-    text = text.strip()
-    text = re.sub(r"^```(?:json)?|```$", "", text, flags=re.MULTILINE).strip()
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        m = re.search(r"\{.*\}", text, flags=re.DOTALL)
-        if not m:
-            raise
-        return json.loads(m.group(0))
+def extract_json(text: str, required: tuple[str, ...] = ()) -> dict:
+    """Pull the JSON object out of a model reply.
+
+    Models often wrap the object in prose, code fences, a repeated draft, or a
+    trailing note. We scan every '{', decode the first complete object from there,
+    and return the first one that has the keys we need.
+    """
+    text = re.sub(r"```(?:json)?", "", text)
+    decoder = json.JSONDecoder()
+    found = []
+    for m in re.finditer(r"\{", text):
+        try:
+            obj, _ = decoder.raw_decode(text, m.start())
+        except json.JSONDecodeError:
+            continue
+        if isinstance(obj, dict):
+            if all(k in obj for k in required):
+                return obj
+            found.append(obj)
+    if found and not required:
+        return max(found, key=len)
+    raise ValueError(f"no JSON object with keys {list(required)} in model reply")
 
 
 def validate_sky(d: dict) -> dict:
@@ -179,7 +191,9 @@ def _google(prompt: str, image_jpeg: bytes | None = None) -> str:
         raise GemmaError(f"Gemini API call failed: {exc} {detail}") from exc
     data = r.json()
     try:
-        return "".join(p.get("text", "") for p in data["candidates"][0]["content"]["parts"])
+        # Skip "thought" parts: thinking models may include draft JSON there.
+        parts = data["candidates"][0]["content"]["parts"]
+        return "".join(p.get("text", "") for p in parts if not p.get("thought"))
     except (KeyError, IndexError) as exc:
         raise GemmaError(f"Unexpected Gemini API response: {str(data)[:300]}") from exc
 
@@ -209,7 +223,7 @@ def read_sky(image_raw: bytes) -> dict:
     jpeg = prepare_image(image_raw)
     text = _generate(VISION_PROMPT, jpeg)
     try:
-        return validate_sky(extract_json(text))
+        return validate_sky(extract_json(text, ("genus",)))
     except Exception as first_error:
         log.warning("vision output invalid (%s); attempting one repair", first_error)
         repair = (
@@ -218,7 +232,7 @@ def read_sky(image_raw: bytes) -> dict:
             f"{json.dumps(CLOUD_GENERA)}.\n\n{text[:2000]}"
         )
         try:
-            return validate_sky(extract_json(_generate(repair)))
+            return validate_sky(extract_json(_generate(repair), ("genus",)))
         except Exception as exc:
             raise GemmaError(f"Gemma's answer could not be validated: {exc}") from exc
 
@@ -227,7 +241,7 @@ def explain(facts: dict) -> dict:
     """Two-sentence explanation. Falls back to a plain template (and says so) on failure."""
     try:
         text = _generate(EXPLAIN_PROMPT.format(facts=json.dumps(facts, indent=1)))
-        d = extract_json(text)
+        d = extract_json(text, ("explanation", "spot_it_tip"))
         return {
             "explanation": str(d["explanation"])[:400],
             "spot_it_tip": str(d["spot_it_tip"])[:250],
