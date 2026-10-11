@@ -1,0 +1,29 @@
+# Render Blueprint: New + -> Blueprint -> pick this repo.
+services:
+  - type: web
+    name: cloud-oracle
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: GEMMA_BACKEND
+        value: google
+      - key: GEMMA_API_MODEL
+        value: gemma-4-26b-a4b-it
+      - key: PREDICTOR_BACKEND
+        value: auto
+      - key: DEFAULT_LAT
+        value: "19.0760"
+      - key: DEFAULT_LON
+        value: "72.8777"
+      - key: DEFAULT_PLACE
+        value: Mumbai
+      # Secrets: Render asks for these when you create the Blueprint.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TABPFN_TOKEN
+        sync: false

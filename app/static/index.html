@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cloud Oracle</title>
+<meta name="description" content="Point your phone at the sky. Learn to read it.">
+<meta name="theme-color" content="#0f1e33">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky-top: #0f1e33;
+    --sky-mid: #22406a;
+    --sky-low: #c98c6b;
+    --paper: #f7f4ee;
+    --card: #ffffff;
+    --ink: #17202c;
+    --ink-soft: #586273;
+    --line: #e4e0d8;
+    --accent: #2a78d6;
+    --rain: #2a78d6;
+    --dry: #c98c6b;
+    --warn-bg: #fff4e0;
+    --warn-ink: #7a4b00;
+    --radius: 18px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0c1522;
+      --card: #142233;
+      --ink: #eef2f7;
+      --ink-soft: #9fb0c4;
+      --line: #22364d;
+      --warn-bg: #3a2a10;
+      --warn-ink: #ffd18a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .sky {
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 60%, var(--sky-low) 140%);
+    color: #fff;
+    padding: 28px 16px 72px;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .brand { font-family: Fraunces, Georgia, serif; font-weight: 700; font-size: 30px; letter-spacing: -0.01em; margin: 0; }
+  .tag { margin: 4px 0 0; color: #cfdcef; font-size: 15px; }
+  main { margin-top: -48px; padding: 0 16px 48px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 24px rgba(15, 30, 51, 0.08);
+  }
+  h2 { font-family: Fraunces, Georgia, serif; font-size: 20px; margin: 0 0 8px; font-weight: 700; }
+  .muted { color: var(--ink-soft); font-size: 14px; }
+  .capture {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 18px; border-radius: 14px; border: 0;
+    background: var(--accent); color: #fff; font: 600 17px Inter, sans-serif;
+    cursor: pointer;
+  }
+  .capture:active { transform: scale(0.99); }
+  .capture input { display: none; }
+  .linkbtn { background: none; border: 0; color: var(--accent); font: 500 15px Inter, sans-serif; padding: 10px 0 0; cursor: pointer; }
+  .loc { margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
+  .hidden { display: none !important; }
+
+  .steps { list-style: none; padding: 0; margin: 0; }
+  .steps li { padding: 6px 0; color: var(--ink-soft); }
+  .steps li.on { color: var(--ink); font-weight: 600; }
+  .steps li.on::before { content: "● "; color: var(--accent); }
+  .steps li.done::before { content: "✓ "; color: var(--accent); }
+
+  .big { display: flex; align-items: baseline; gap: 12px; }
+  .pct { font-family: Fraunces, Georgia, serif; font-size: 64px; font-weight: 700; line-height: 1; }
+  .pct-label { color: var(--ink-soft); font-size: 15px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+  .chip strong { text-transform: capitalize; }
+
+  .bars { margin-top: 16px; display: grid; gap: 10px; }
+  .bar-row { display: grid; grid-template-columns: 130px 1fr 44px; align-items: center; gap: 10px; font-size: 14px; }
+  .bar { height: 10px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--rain); border-radius: 999px; transition: width .6s ease; }
+  .bar-row.data .bar > span { background: var(--ink-soft); }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .lesson p { margin: 0 0 10px; }
+  .tip { border-left: 3px solid var(--dry); padding: 2px 0 2px 12px; }
+  .tip b { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+
+  .warn { background: var(--warn-bg); color: var(--warn-ink); border-radius: 12px; padding: 10px 12px; font-size: 14px; margin-top: 12px; }
+  .row-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .btn { padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); font: 600 15px Inter, sans-serif; cursor: pointer; }
+  .btn.sel { border-color: var(--accent); outline: 2px solid var(--accent); }
+
+  .genus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  .genus { text-align: left; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; font: 14px Inter, sans-serif; }
+  .genus b { display: block; text-transform: capitalize; font-size: 15px; }
+  .genus span { color: var(--ink-soft); font-size: 12px; }
+  .genus.sel { outline: 2px solid var(--accent); border-color: var(--accent); }
+  label.inline { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 8px 0; }
+  input[type=range] { width: 100%; }
+
+  details { margin-top: 12px; font-size: 13px; color: var(--ink-soft); }
+  details table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  details td { padding: 3px 0; border-bottom: 1px solid var(--line); }
+  details td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .log-item { display: grid; grid-template-columns: 1fr auto; gap: 4px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .log-item:last-child { border-bottom: 0; }
+  .badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); }
+  footer { text-align: center; font-size: 12px; color: var(--ink-soft); padding: 8px 16px 32px; }
+  footer .baseline { color: var(--warn-ink); background: var(--warn-bg); padding: 2px 6px; border-radius: 6px; }
+</style>
+</head>
+<body>
+<header class="sky">
+  <div class="wrap">
+    <p class="brand">Cloud Oracle</p>
+    <p class="tag">Look up first. Then tap once. Learn to read the sky yourself.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- Capture -->
+  <section class="card" id="start">
+    <h2>What does the sky look like?</h2>
+    <p class="muted">Step outside, frame mostly sky, and take one photo. The rest happens without you staring at the screen.</p>
+    <label class="capture" role="button">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h3l2-3h6l2 3h3v13H4z"/><circle cx="12" cy="13" r="4"/></svg>
+      Read the sky
+      <input id="photo" type="file" accept="image/*" capture="environment">
+    </label>
+    <button class="linkbtn" id="manualOpen" type="button">No photo? Tell it what you see</button>
+    <div class="loc" id="loc">Finding your location…</div>
+  </section>
+
+  <!-- Manual picker -->
+  <section class="card hidden" id="manual">
+    <h2>Which cloud is it?</h2>
+    <p class="muted">Pick the one that best matches the biggest clouds you can see.</p>
+    <div class="genus-grid" id="genusGrid"></div>
+    <label for="oktas" class="muted">How much sky is covered: <b id="oktasVal">5</b>/8</label>
+    <input id="oktas" type="range" min="0" max="8" value="5">
+    <label class="inline"><input type="checkbox" id="vertical"> Tall, towering growth</label>
+    <button class="capture" id="manualGo" type="button">Predict</button>
+  </section>
+
+  <!-- Working -->
+  <section class="card hidden" id="working">
+    <h2>Reading the sky…</h2>
+    <ul class="steps" id="steps">
+      <li data-k="0">Looking at the clouds</li>
+      <li data-k="1">Checking humidity and pressure</li>
+      <li data-k="2">Asking TabPFN for the odds</li>
+      <li data-k="3">Writing your sky lesson</li>
+    </ul>
+  </section>
+
+  <!-- Result -->
+  <section class="card hidden" id="result">
+    <div class="big">
+      <div class="pct" id="pct">–</div>
+      <div class="pct-label" id="pctLabel">chance of rain in the next 3 hours</div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="bars">
+      <div class="bar-row eyes" id="eyesRow"><span>With your eyes</span><div class="bar"><span id="eyesBar"></span></div><span class="num" id="eyesNum"></span></div>
+      <div class="bar-row data"><span>Weather data only</span><div class="bar"><span id="dataBar"></span></div><span class="num" id="dataNum"></span></div>
+    </div>
+    <p class="muted" id="modelFc" style="margin:10px 0 0"></p>
+    <div class="warn hidden" id="skyWarn"></div>
+    <button class="linkbtn" id="correct" type="button">Wrong cloud? Correct it</button>
+    <details>
+      <summary>What the model saw</summary>
+      <table id="condTable"></table>
+    </details>
+  </section>
+
+  <section class="card lesson hidden" id="lesson">
+    <h2>Your sky lesson</h2>
+    <p id="explain"></p>
+    <div class="tip"><b>Spot it yourself next time</b><span id="tip"></span></div>
+  </section>
+
+  <section class="card hidden" id="outcome">
+    <h2>Come back in <span id="hrs">3</span> hours</h2>
+    <p class="muted">Pocket the phone. Later, tell Cloud Oracle what really happened so we can score it honestly.</p>
+    <div class="row-btns">
+      <button class="btn" data-rained="true" type="button">It rained</button>
+      <button class="btn" data-rained="false" type="button">Stayed dry</button>
+    </div>
+    <p class="muted hidden" id="logged" style="margin:10px 0 0">Logged. Thank you, observer.</p>
+  </section>
+
+  <!-- Field log -->
+  <section class="card" id="fieldlog">
+    <h2>Field log</h2>
+    <p class="muted" id="score">No readings yet.</p>
+    <div id="logList"></div>
+  </section>
+</main>
+<footer id="footer">Loading models…</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const GENUS_HINT = {
+  clear: "Blue sky, no real clouds",
+  cirrus: "Thin wispy streaks, very high",
+  cirrocumulus: "Tiny high ripples, fish scales",
+  cirrostratus: "Milky veil, halo round the sun",
+  altocumulus: "Mid-level patches in rows",
+  altostratus: "Grey sheet, sun like frosted glass",
+  nimbostratus: "Thick dark grey, steady rain",
+  stratocumulus: "Lumpy grey rolls, blue gaps",
+  stratus: "Low flat grey fog-like sheet",
+  cumulus: "Puffy white, flat bases",
+  cumulonimbus: "Huge towers, anvil top",
+};
+let cfg = null, coords = null, lastReading = null, chosenGenus = "cumulus";
+
+function show(id, on = true) { $(id).classList.toggle("hidden", !on); }
+
+async function init() {
+  try {
+    cfg = await (await fetch("/api/config")).json();
+  } catch { cfg = { genera: Object.keys(GENUS_HINT), horizon_hours: 3 }; }
+  $("hrs").textContent = cfg.horizon_hours;
+  buildGenusGrid();
+  locate();
+  refreshFooter();
+  loadLog();
+}
+
+function locate() {
+  const fallback = () => {
+    coords = null;
+    $("loc").textContent = cfg.default_place ? `Using ${cfg.default_place} (location not shared)` : "Using default location";
+  };
+  if (!navigator.geolocation) return fallback();
+  navigator.geolocation.getCurrentPosition(
+    (p) => { coords = { lat: p.coords.latitude, lon: p.coords.longitude }; $("loc").textContent = "Using your current location (rounded to ~1 km)"; },
+    fallback, { timeout: 8000, maximumAge: 600000 }
+  );
+}
+
+function buildGenusGrid() {
+  const grid = $("genusGrid");
+  grid.innerHTML = "";
+  (cfg.genera || Object.keys(GENUS_HINT)).forEach((g) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "genus" + (g === chosenGenus ? " sel" : "");
+    b.innerHTML = `<b>${g}</b><span>${GENUS_HINT[g] || ""}</span>`;
+    b.onclick = () => { chosenGenus = g; [...grid.children].forEach(c => c.classList.remove("sel")); b.classList.add("sel"); if (g === "clear") { $("oktas").value = 0; $("oktasVal").textContent = 0; } };
+    grid.appendChild(b);
+  });
+}
+
+// Shrink the photo in the browser: faster upload, and EXIF (GPS etc.) is dropped.
+function shrink(file, max = 1024) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob((b) => b ? resolve(b) : reject(new Error("resize failed")), "image/jpeg", 0.85);
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => resolve(file); // let the server try (e.g. HEIC)
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+let stepTimer = null;
+function startSteps() {
+  show("working"); ["result", "lesson", "outcome", "manual"].forEach(i => show(i, false));
+  const items = [...$("steps").children];
+  items.forEach(li => li.className = "");
+  let k = 0; items[0].className = "on";
+  stepTimer = setInterval(() => {
+    if (k < items.length - 1) { items[k].className = "done"; k++; items[k].className = "on"; }
+  }, 2200);
+}
+function stopSteps() { clearInterval(stepTimer); show("working", false); }
+
+async function predict(form) {
+  if (coords) { form.append("lat", coords.lat); form.append("lon", coords.lon); }
+  startSteps();
+  try {
+    const r = await fetch("/api/read-sky", { method: "POST", body: form });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || "Something went wrong");
+    render(data);
+  } catch (e) {
+    stopSteps();
+    alert(e.message);
+  }
+}
+
+$("photo").addEventListener("change", async (ev) => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const form = new FormData();
+  form.append("image", await shrink(file), "sky.jpg");
+  ev.target.value = "";
+  predict(form);
+});
+
+$("manualOpen").onclick = () => { show("manual"); $("manual").scrollIntoView({ behavior: "smooth" }); };
+$("correct").onclick = $("manualOpen").onclick;
+$("oktas").oninput = (e) => $("oktasVal").textContent = e.target.value;
+$("manualGo").onclick = () => {
+  const form = new FormData();
+  form.append("manual_genus", chosenGenus);
+  form.append("manual_oktas", $("oktas").value);
+  form.append("manual_vertical", $("vertical").checked);
+  predict(form);
+};
+
+const pct = (p) => p == null ? "–" : `${Math.round(p * 100)}%`;
+
+function render(d) {
+  stopSteps();
+  lastReading = d.reading_id;
+  $("pct").textContent = pct(d.rain_probability);
+  $("pctLabel").textContent = `chance of rain in the next ${d.horizon_hours} hours`;
+
+  const chips = $("chips"); chips.innerHTML = "";
+  if (d.sky) {
+    const add = (html) => { const c = document.createElement("span"); c.className = "chip"; c.innerHTML = html; chips.appendChild(c); };
+    add(`<strong>${d.sky.genus}</strong>`);
+    if (d.sky.genus !== "clear") add(`${d.sky.coverage_oktas}/8 covered`);
+    if (d.sky.vertical_development) add("towering");
+    add(d.sky.source === "you" ? "your call" : `${Math.round(d.sky.confidence * 100)}% sure`);
+  }
+
+  show("eyesRow", d.p_with_eyes != null);
+  $("eyesBar").style.width = pct(d.p_with_eyes); $("eyesNum").textContent = pct(d.p_with_eyes);
+  $("dataBar").style.width = pct(d.p_data_only); $("dataNum").textContent = pct(d.p_data_only);
+  $("modelFc").textContent = `Weather model forecast for the same ${d.horizon_hours} h: ${d.model_forecast_mm_3h} mm of rain.`;
+
+  const warn = $("skyWarn");
+  if (d.sky_error) {
+    warn.textContent = "Gemma couldn't read this photo, so this is the weather-data-only estimate. Tap “Correct it” to tell it what you see.";
+    show("skyWarn");
+  } else if (d.sky && d.sky.is_sky === false) {
+    warn.textContent = "That photo doesn't look like mostly sky — try again with the horizon low in the frame.";
+    show("skyWarn");
+  } else show("skyWarn", false);
+
+  const labels = { cloud_low: "Low cloud %", cloud_mid: "Mid cloud %", cloud_high: "High cloud %", humidity: "Humidity %", temp: "Temperature °C", dew_spread: "Temp − dew point °C", pressure: "Pressure hPa", pressure_change_3h: "Pressure change 3 h", wind_speed: "Wind km/h", rain_last_3h: "Rain last 3 h mm" };
+  $("condTable").innerHTML = Object.entries(labels).map(([k, l]) => `<tr><td>${l}</td><td>${d.conditions[k]}</td></tr>`).join("") +
+    `<tr><td>Local time</td><td>${d.local_time}</td></tr>`;
+
+  $("explain").textContent = d.lesson.explanation;
+  $("tip").textContent = d.lesson.spot_it_tip;
+  document.querySelectorAll("#outcome .btn").forEach(b => b.classList.remove("sel"));
+  show("logged", false);
+  ["result", "lesson", "outcome"].forEach(i => show(i));
+  $("result").scrollIntoView({ behavior: "smooth" });
+  refreshFooter(d.backends);
+  loadLog();
+}
+
+document.querySelectorAll("#outcome .btn").forEach((b) => {
+  b.onclick = async () => {
+    if (!lastReading) return;
+    await fetch("/api/log", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reading_id: lastReading, rained: b.dataset.rained === "true" }) });
+    document.querySelectorAll("#outcome .btn").forEach(x => x.classList.remove("sel"));
+    b.classList.add("sel"); show("logged"); loadLog();
+  };
+});
+
+async function loadLog() {
+  try {
+    const d = await (await fetch("/api/readings?limit=20")).json();
+    $("score").textContent = d.readings.length
+      ? (d.scored ? `${d.correct} of ${d.scored} checked predictions were right (50% cut-off).` : `${d.readings.length} reading(s). Log what happened to score them.`)
+      : "No readings yet.";
+    $("logList").innerHTML = d.readings.map(r => {
+      const p = r.p_with_eyes ?? r.p_data_only;
+      const out = r.outcome === undefined ? "" : `<span class="badge">${r.outcome ? "rained" : "dry"}</span>`;
+      return `<div class="log-item"><span><b style="text-transform:capitalize">${r.sky ? r.sky.genus : "no photo"}</b> · ${pct(p)} · ${r.local_time.replace("T", " ")}</span>${out}</div>`;
+    }).join("");
+  } catch {}
+}
+
+async function refreshFooter(b) {
+  try {
+    if (!b) { const h = await (await fetch("/api/health")).json(); b = { predictor: h.predictor, gemma: h.gemma.model }; }
+    const p = b.predictor;
+    const pred = p.is_tabpfn
+      ? `Forecast: TabPFN (${p.backend}) trained on ${p.train_rows.toLocaleString()} hours`
+      : p.backend === "not-ready" ? "Forecast model warming up…" : `<span class="baseline">Forecast: baseline model — TabPFN unavailable</span>`;
+    $("footer").innerHTML = `Vision: ${b.gemma}<br>${pred}<br>Photos are resized on your phone and never stored.`;
+    if (p.backend === "not-ready") setTimeout(refreshFooter, 4000);
+  } catch {}
+}
+
+init();
+</script>
+</body>
+</html>

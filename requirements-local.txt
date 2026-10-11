@@ -1,0 +1,5 @@
+# Extras for your laptop: charts for the write-up, and (optionally) TabPFN running fully offline.
+-r requirements.txt
+matplotlib>=3.7
+# Uncomment to run TabPFN locally with no API at all (downloads torch, ~1 GB):
+# tabpfn>=2.0
